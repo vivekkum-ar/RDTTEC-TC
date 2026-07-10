@@ -287,9 +287,13 @@ app.get('/api/auth-test', async (_req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
-  console.log(`  Credentials: ${loadCredentials() ? 'found' : 'missing'}`);
-  console.log(`  Spreadsheet ID: ${SPREADSHEET_ID}`);
-  console.log(`  Sheet Name: ${SHEET_NAME}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`API server running on http://localhost:${PORT}`);
+    console.log(`  Credentials: ${loadCredentials() ? 'found' : 'missing'}`);
+    console.log(`  Spreadsheet ID: ${SPREADSHEET_ID}`);
+    console.log(`  Sheet Name: ${SHEET_NAME}`);
+  });
+}
+
+export default app;
