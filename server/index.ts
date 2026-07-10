@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/ping', (_req, res) => res.json({ pong: true }));
+app.get('/api', (_req, res) => res.json({ ok: true, message: 'API is running' }));
 
 const PORT = process.env.SERVER_PORT || 3001;
 const SPREADSHEET_ID = process.env.VITE_SPREADSHEET_ID || '';
@@ -295,5 +296,9 @@ if (!process.env.VERCEL) {
     console.log(`  Sheet Name: ${SHEET_NAME}`);
   });
 }
+
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
 
 export default app;
