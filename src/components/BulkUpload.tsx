@@ -80,7 +80,7 @@ export function BulkUpload() {
 
   const handleDragLeave = () => setIsDragging(false);
 
-  const showDuplicatePrompt = useCallback((tcNumber: string, studentName: string): Promise<'yes' | 'yesToAll' | 'skip' | 'cancel'> => {
+  const showDuplicatePrompt = useCallback((tcNumber: string, studentName: string): Promise<'yes' | 'yesToAll' | 'skip' | 'noToAll' | 'cancel'> => {
     return new Promise((resolve) => {
       setDuplicate({ show: true, tcNumber, studentName, resolve });
     });
