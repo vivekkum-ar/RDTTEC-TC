@@ -16,7 +16,7 @@ interface DuplicateState {
   show: boolean;
   tcNumber: string;
   studentName: string;
-  resolve: (choice: 'yes' | 'yesToAll' | 'skip' | 'cancel') => void;
+  resolve: (choice: 'yes' | 'yesToAll' | 'skip' | 'noToAll' | 'cancel') => void;
 }
 
 interface ProgressState {

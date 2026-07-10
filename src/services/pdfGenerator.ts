@@ -1,8 +1,8 @@
 import { jsPDF } from 'jspdf';
 import type { TCData } from '../types';
-import { TC_FIELDS, DEFAULT_SCHOOL_INFO } from '../types';
+import { TC_FIELDS } from '../types';
 
-export function generateTCPDF(data: TCData, schoolInfo?: typeof DEFAULT_SCHOOL_INFO): jsPDF {
+export function generateTCPDF(data: TCData): jsPDF {
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
@@ -74,7 +74,7 @@ export function generateTCPDF(data: TCData, schoolInfo?: typeof DEFAULT_SCHOOL_I
   return doc;
 }
 
-export function generateBulkTCPDF(records: TCData[], schoolInfo = DEFAULT_SCHOOL_INFO): jsPDF {
+export function generateBulkTCPDF(records: TCData[]): jsPDF {
   const doc = new jsPDF('p', 'mm', 'a4');
 
   records.forEach((record, index) => {
