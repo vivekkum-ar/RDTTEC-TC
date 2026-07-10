@@ -27,5 +27,5 @@ dist-ssr
 .env
 
 # Service account key
-service-account.json
+
 nul
