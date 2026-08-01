@@ -13,11 +13,31 @@ export const TC_FIELDS: TCField[] = [
   { label: "Father's Name", key: 'fatherName', type: 'text', required: true },
   { label: 'Nationality', key: 'nationality', type: 'text', required: true },
   { label: 'Date of Admission', key: 'dateOfAdmission', type: 'date', required: true },
-  { label: 'Course to which admitted', key: 'courseAdmitted', type: 'text', required: true },
+  {
+    label: 'Course to which admitted',
+    key: 'courseAdmitted',
+    type: 'select',
+    required: true,
+    options: [
+      'CP01: Tool Engineering & Digital Manufacturing',
+      'CP04: Electronics & Embedded Systems',
+      'CP08: Computer Technology & IT Infrastructure',
+      'CP09: Information Technology & Data Science',
+      'CP15: Mechatronics Engineering & Smart Factory',
+      'CP23: Electrical & Electronics Systems',
+      'CPCCM',
+    ],
+  },
   { label: 'Date of Leaving', key: 'dateOfLeaving', type: 'date', required: true },
   { label: 'Reason for leaving', key: 'reasonForLeaving', type: 'text', required: true },
   { label: 'Date of Application for Transfer Certificate', key: 'dateOfApplication', type: 'date', required: true },
-  { label: 'Conduct and character', key: 'conductCharacter', type: 'text', required: true },
+  {
+    label: 'Conduct and character',
+    key: 'conductCharacter',
+    type: 'select',
+    required: true,
+    options: ['Excellent', 'Good', 'Satisfactory', 'Not satisfactory'],
+  },
   { label: 'Centre Studied', key: 'centreStudied', type: 'text', required: true },
 ];
 

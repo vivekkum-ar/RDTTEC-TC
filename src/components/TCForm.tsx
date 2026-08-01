@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
@@ -122,14 +123,35 @@ export function TCForm({ onPreviewUpdate }: TCFormProps) {
                   {field.label}
                   {field.required && <span className="ml-1 text-destructive">*</span>}
                 </Label>
-                <Input
-                  id={field.key}
-                  type={isDateField(field.key) ? 'date' : 'text'}
-                  className={error ? 'border-destructive ring-destructive/20' : ''}
-                  {...register(key)}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  placeholder={isDateField(field.key) ? '' : `Enter ${field.label.toLowerCase()}`}
-                />
+                {field.type === 'select' ? (
+                  <Select
+                    value={(watchedValues[key] as string) || ''}
+                    onValueChange={(value) => handleChange(key, value)}
+                  >
+                    <SelectTrigger
+                      id={field.key}
+                      className={error ? 'border-destructive ring-destructive/20' : ''}
+                    >
+                      <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {field.options?.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={field.key}
+                    type={isDateField(field.key) ? 'date' : 'text'}
+                    className={error ? 'border-destructive ring-destructive/20' : ''}
+                    {...register(key)}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    placeholder={isDateField(field.key) ? '' : `Enter ${field.label.toLowerCase()}`}
+                  />
+                )}
                 {error && (
                   <p className="text-xs text-destructive flex items-center gap-1">
                     <span className="inline-block w-1 h-1 rounded-full bg-destructive" />

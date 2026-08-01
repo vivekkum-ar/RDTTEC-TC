@@ -14,29 +14,34 @@ class GoogleSheetsService {
 
     const data = await response.json();
     const rows = data.values || [];
-    if (rows.length <= 1) return [];
 
-    return rows.slice(1).map((row: any[], index: number) => ({
-      id: row[0] || `row-${index}`,
-      rowIndex: index + 2,
-      tcNumber: row[0] || '',
-      studentName: row[1] || '',
-      tokenNumber: row[2] || '',
-      dateOfBirth: row[3] || '',
-      fatherName: row[4] || '',
-      nationality: row[5] || '',
-      dateOfAdmission: row[6] || '',
-      courseAdmitted: row[7] || '',
-      dateOfLeaving: row[8] || '',
-      reasonForLeaving: row[9] || '',
-      dateOfApplication: row[10] || '',
-      conductCharacter: row[11] || '',
-      centreStudied: row[12] || '',
+    const hasHeader = rows.length > 0 && rows[0].some((cell: any) => String(cell).trim() === 'TC Number');
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    if (dataRows.length === 0) return [];
+
+    return dataRows.map((row: any[], index: number) => ({
+      id: row[1] || `row-${index}`,
+      rowIndex: index + (hasHeader ? 2 : 1),
+      createdAt: row[0] || '',
+      tcNumber: row[1] || '',
+      studentName: row[2] || '',
+      tokenNumber: row[3] || '',
+      dateOfBirth: row[4] || '',
+      fatherName: row[5] || '',
+      nationality: row[6] || '',
+      dateOfAdmission: row[7] || '',
+      courseAdmitted: row[8] || '',
+      dateOfLeaving: row[9] || '',
+      reasonForLeaving: row[10] || '',
+      dateOfApplication: row[11] || '',
+      conductCharacter: row[12] || '',
+      centreStudied: row[13] || '',
     }));
   }
 
   async addTC(data: TCData, tcNumber?: string): Promise<number> {
     const values = [
+      new Date().toISOString(),
       tcNumber || this.generateTCNumber(data.centreStudied, data.tokenNumber),
       data.studentName,
       data.tokenNumber,
@@ -69,6 +74,7 @@ class GoogleSheetsService {
 
   async updateTC(record: TCRecord): Promise<void> {
     const values = [
+      record.createdAt || '',
       record.tcNumber || '',
       record.studentName,
       record.tokenNumber,
@@ -110,7 +116,9 @@ class GoogleSheetsService {
   async bulkImport(tcDataArray: TCData[]): Promise<TCRecord[]> {
     const rows = tcDataArray.map((data) => {
       const tcNumber = this.generateTCNumber(data.centreStudied, data.tokenNumber);
+      const createdAt = data.createdAt || new Date().toISOString();
       return [
+        createdAt,
         tcNumber,
         data.studentName,
         data.tokenNumber,
@@ -143,7 +151,7 @@ class GoogleSheetsService {
       rowIndex: index + 2,
       ...data,
       tcNumber: this.generateTCNumber(data.centreStudied, data.tokenNumber),
-      createdAt: new Date().toISOString(),
+      createdAt: data.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }));
   }

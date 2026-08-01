@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Separator } from './ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 import { Search, RefreshCw, FileDown, Pencil, Trash2, Download, Loader2, AlertCircle, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, DownloadIcon } from 'lucide-react';
 
 const PAGE_SIZES = [20, 40, 60, 80, 100];
@@ -157,7 +158,24 @@ export function History() {
     }
   };
 
+  const formatCreatedAt = (dateStr: string) => {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const tcFields = [
+    { key: 'createdAt', label: 'Created', readOnly: true },
     { key: 'studentName', label: 'Student Name' },
     { key: 'tokenNumber', label: 'Token Number' },
     { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
@@ -264,6 +282,7 @@ export function History() {
                     />
                   </TableHead>
                   <TableHead className="w-8 text-xs text-muted-foreground">#</TableHead>
+                  <TableHead>Timestamp</TableHead>
                   <TableHead>TC Number</TableHead>
                   <TableHead>Student Name</TableHead>
                   <TableHead>Token No</TableHead>
@@ -276,7 +295,7 @@ export function History() {
               <TableBody>
                 {paginatedRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                       No records match your search.
                     </TableCell>
                   </TableRow>
@@ -293,6 +312,22 @@ export function History() {
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {(safeCurrentPage - 1) * pageSize + index + 1}
+                      </TableCell>
+                      <TableCell>
+                        {record.createdAt ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="font-mono text-xs text-muted-foreground cursor-default">
+                                  {formatCreatedAt(record.createdAt)}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>{formatCreatedAt(record.createdAt)}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="font-mono text-xs">{record.tcNumber || '—'}</TableCell>
                       <TableCell className="font-medium">{record.studentName}</TableCell>
@@ -435,12 +470,18 @@ export function History() {
             {tcFields.map((field) => (
               <div key={field.key} className="space-y-2">
                 <Label htmlFor={`edit-${field.key}`}>{field.label}</Label>
-                <Input
-                  id={`edit-${field.key}`}
-                  type={(field as any).type || 'text'}
-                  value={(editData as any)[field.key] || ''}
-                  onChange={(e) => setEditData({ ...editData, [field.key]: e.target.value })}
-                />
+                {field.key === 'createdAt' ? (
+                  <div className="rounded-lg border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    {(editData as any).createdAt ? formatCreatedAt((editData as any).createdAt) : '—'}
+                  </div>
+                ) : (
+                  <Input
+                    id={`edit-${field.key}`}
+                    type={(field as any).type || 'text'}
+                    value={(editData as any)[field.key] || ''}
+                    onChange={(e) => setEditData({ ...editData, [field.key]: e.target.value })}
+                  />
+                )}
               </div>
             ))}
           </div>

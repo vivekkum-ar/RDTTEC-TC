@@ -17,11 +17,14 @@ let cachedToken: string | null = null;
 let tokenExpiry = 0;
 
 function loadCredentials(): any {
-  const saKeyRaw = process.env.VITE_SA_KEY;
+  const saKeyJson = process.env.SA_KEY_JSON;
   const saKeyFile = process.env.SA_KEY_FILE;
 
-  if (saKeyRaw) {
-    try { return JSON.parse(saKeyRaw); } catch {}
+  if (saKeyJson) {
+    try { return JSON.parse(saKeyJson); }
+    catch {
+      console.warn('SA_KEY_JSON is set but is not valid JSON; falling back to SA_KEY_FILE.');
+    }
   }
 
   if (saKeyFile) {
@@ -29,7 +32,9 @@ function loadCredentials(): any {
       const filePath = path.resolve(saKeyFile);
       const content = fs.readFileSync(filePath, 'utf-8');
       return JSON.parse(content);
-    } catch {}
+    } catch {
+      console.warn(`Could not read or parse SA_KEY_FILE at "${path.resolve(saKeyFile)}".`);
+    }
   }
 
   return null;
@@ -57,7 +62,7 @@ async function getToken(): Promise<string | null> {
     if (error.response?.data) {
       console.error('Auth error details:', JSON.stringify(error.response.data));
     }
-    return null;
+    throw new Error(`Google auth failed: ${error.message}`);
   }
 }
 
@@ -119,14 +124,14 @@ app.get('/api', (_req, res) => res.json({ ok: true }));
 app.get('/api/sheets', async (_req, res) => {
   try {
     const token = await getToken();
-    if (!token) return res.status(500).json({ error: 'Service account not configured. Check SA_KEY_FILE in .env' });
+    if (!token) return res.status(500).json({ error: 'Service account not configured. Set SA_KEY_JSON or SA_KEY_FILE' });
 
     if (!(await ensureSheetExists())) {
       return res.status(500).json({ error: 'Failed to access spreadsheet' });
     }
 
     const data = await sheetsFetch(
-      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:M`
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:N`
     );
 
     res.json({ values: data.values || [] });
@@ -149,7 +154,7 @@ app.post('/api/sheets', async (req, res) => {
     }
 
     const data = await sheetsFetch(
-      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:M:append?valueInputOption=RAW`,
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:N:append?valueInputOption=RAW`,
       { method: 'POST', body: JSON.stringify({ values: [values] }) }
     );
 
@@ -173,7 +178,7 @@ app.put('/api/sheets/:rowIndex', async (req, res) => {
     const values = req.body.values;
 
     await sheetsFetch(
-      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A${rowIndex}:M${rowIndex}?valueInputOption=RAW`,
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A${rowIndex}:N${rowIndex}?valueInputOption=RAW`,
       { method: 'PUT', body: JSON.stringify({ values: [values] }) }
     );
 
@@ -235,7 +240,7 @@ app.post('/api/sheets/bulk', async (req, res) => {
     }
 
     await sheetsFetch(
-      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:M:append?valueInputOption=RAW`,
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:N:append?valueInputOption=RAW`,
       { method: 'POST', body: JSON.stringify({ values: rows }) }
     );
 

@@ -46,7 +46,7 @@ export class ExcelParser {
       'Course to which admitted',
       'Date of Leaving',
       'Reason for leaving',
-      'Date of Application for Transfer Certificate',
+      'Date of Application for <br/> Transfer Certificate',
       'Conduct and character',
       'Centre Studied',
     ];
