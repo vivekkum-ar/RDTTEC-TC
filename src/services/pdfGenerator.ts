@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import type { TCData } from '../types';
 import { TC_FIELDS } from '../types';
 
-export function generateTCPDF(data: TCData): jsPDF {
+export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): jsPDF {
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
@@ -21,6 +21,12 @@ export function generateTCPDF(data: TCData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.text('TRANSFER CERTIFICATE', pageWidth / 2, yPos, { align: 'center' });
   yPos += 10;
+
+  if (options?.duplicate) {
+    doc.setFontSize(11);
+    doc.text('DUPLICATE', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+  }
 
   if (data.tcNumber) {
     doc.setFontSize(10);

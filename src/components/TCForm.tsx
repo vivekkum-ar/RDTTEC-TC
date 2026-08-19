@@ -73,11 +73,11 @@ export function TCForm({ onPreviewUpdate }: TCFormProps) {
     setGenerating(true);
     try {
       const { tcNumber } = await googleSheetsService.addTCWithUniqueNumber(watchedValues as TCData);
-      const doc = generateTCPDF({ ...(watchedValues as TCData), tcNumber });
+      const doc = generateTCPDF({ ...(watchedValues as TCData), tcNumber }, { duplicate: true });
       downloadPDF(doc, `TC_${watchedValues.studentName?.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
     } catch (error: any) {
       if (error.message !== 'Not configured' && error.message !== 'Not authenticated. Please sign in with Google.') {
-        const doc = generateTCPDF(watchedValues as TCData);
+        const doc = generateTCPDF(watchedValues as TCData, { duplicate: true });
         downloadPDF(doc, `TC_${watchedValues.studentName?.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
       }
     } finally {
