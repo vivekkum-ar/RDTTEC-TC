@@ -4,6 +4,7 @@ export interface TCField {
   type: 'text' | 'date' | 'number' | 'select';
   required?: boolean;
   options?: string[];
+  labelLines?: string[];
 }
 
 export const TC_FIELDS: TCField[] = [
@@ -30,7 +31,13 @@ export const TC_FIELDS: TCField[] = [
   },
   { label: 'Date of Leaving', key: 'dateOfLeaving', type: 'date', required: true },
   { label: 'Reason for leaving', key: 'reasonForLeaving', type: 'text', required: true },
-  { label: 'Date of Application for Transfer Certificate', key: 'dateOfApplication', type: 'date', required: true },
+  {
+    label: 'Date of Application for Transfer Certificate',
+    key: 'dateOfApplication',
+    type: 'date',
+    required: true,
+    labelLines: ['Date of Application for', 'Transfer Certificate:'],
+  },
   {
     label: 'Conduct and character',
     key: 'conductCharacter',

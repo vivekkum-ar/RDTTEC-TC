@@ -43,17 +43,20 @@ export function generateTCPDF(data: TCData): jsPDF {
     const value = data[field.key as keyof TCData];
     const displayValue = field.key.includes('Date') ? formatDate(value as string) : (value as string);
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${field.label}:`, margin, yPos);
-
-    doc.setFont('helvetica', 'normal');
     const valueX = margin + labelWidth;
     const maxWidth = pageWidth - valueX - margin;
 
+    doc.setFont('helvetica', 'normal');
     const lines = doc.splitTextToSize(displayValue || '—', maxWidth);
+
+    doc.setFont('helvetica', 'bold');
+    const labelLines = field.labelLines ?? doc.splitTextToSize(`${field.label}:`, labelWidth);
+    doc.text(labelLines, margin, yPos);
+
+    doc.setFont('helvetica', 'normal');
     doc.text(lines, valueX, yPos);
 
-    yPos += Math.max(10, lines.length * 6);
+    yPos += Math.max(10, labelLines.length * 6, lines.length * 6);
   });
 
   yPos += 14;
@@ -121,17 +124,20 @@ export function generateBulkTCPDF(records: TCData[]): jsPDF {
       const value = record[field.key as keyof TCData];
       const displayValue = field.key.includes('Date') ? formatDate(value as string) : (value as string);
 
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${field.label}:`, margin, yPos);
-
-      doc.setFont('helvetica', 'normal');
       const valueX = margin + labelWidth;
       const maxWidth = pageWidth - valueX - margin;
 
+      doc.setFont('helvetica', 'normal');
       const lines = doc.splitTextToSize(displayValue || '—', maxWidth);
+
+      doc.setFont('helvetica', 'bold');
+      const labelLines = field.labelLines ?? doc.splitTextToSize(`${field.label}:`, labelWidth);
+      doc.text(labelLines, margin, yPos);
+
+      doc.setFont('helvetica', 'normal');
       doc.text(lines, valueX, yPos);
 
-      yPos += Math.max(10, lines.length * 6);
+      yPos += Math.max(10, labelLines.length * 6, lines.length * 6);
     });
 
     yPos += 14;
