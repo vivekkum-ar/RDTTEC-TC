@@ -91,7 +91,7 @@ function TCFormPage() {
     tokenNumber: '',
     dateOfBirth: '',
     fatherName: '',
-    nationality: '',
+    nationality: 'Indian',
     dateOfAdmission: '',
     courseAdmitted: '',
     dateOfLeaving: '',

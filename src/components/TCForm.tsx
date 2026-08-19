@@ -57,6 +57,7 @@ export function TCForm({ onPreviewUpdate }: TCFormProps) {
   } = useForm<TCFormValues>({
     resolver: zodResolver(tcSchema),
     mode: 'onChange',
+    defaultValues: { nationality: 'Indian' },
   });
 
   const watchedValues = watch();
