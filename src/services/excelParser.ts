@@ -37,18 +37,17 @@ export class ExcelParser {
 
     const headers = rows[0] as string[];
     const expectedHeaders = [
-      'Name of the student',
-      'Token Number',
-      'Date of Birth',
-      "Father's Name",
-      'Nationality',
-      'Date of Admission',
-      'Course to which admitted',
+      'Name',
+      'Student Code',
+      'Father Name',
+      'Date Of Birth',
+      'Admission Date',
+      'Enrollment Course',
+      'Enrollment Center',
       'Date of Leaving',
       'Reason for leaving',
-      'Date of Application for <br/> Transfer Certificate',
+      'Date of Application for Transfer Certificate',
       'Conduct and character',
-      'Centre Studied',
     ];
 
     const headerMap: Record<string, number> = {};
@@ -87,6 +86,10 @@ export class ExcelParser {
         }
       });
 
+      if (!record.nationality) {
+        record.nationality = 'Indian';
+      }
+
       if (hasData) {
         data.push(record as TCData);
       }
@@ -101,18 +104,18 @@ export class ExcelParser {
 
   private static getHeaderName(key: string): string {
     const map: Record<string, string> = {
-      studentName: 'Name of the student',
-      tokenNumber: 'Token Number',
-      dateOfBirth: 'Date of Birth',
-      fatherName: "Father's Name",
+      studentName: 'Name',
+      tokenNumber: 'Student Code',
+      dateOfBirth: 'Date Of Birth',
+      fatherName: 'Father Name',
       nationality: 'Nationality',
-      dateOfAdmission: 'Date of Admission',
-      courseAdmitted: 'Course to which admitted',
+      dateOfAdmission: 'Admission Date',
+      courseAdmitted: 'Enrollment Course',
       dateOfLeaving: 'Date of Leaving',
       reasonForLeaving: 'Reason for leaving',
       dateOfApplication: 'Date of Application for Transfer Certificate',
       conductCharacter: 'Conduct and character',
-      centreStudied: 'Centre Studied',
+      centreStudied: 'Enrollment Center',
     };
     return map[key] || key;
   }
@@ -121,21 +124,20 @@ export class ExcelParser {
     const workbook = XLSX.utils.book_new();
 
     const headerRow = EXCEL_HEADERS;
-    const sampleRow = [
-      '',
-      'John Doe',
-      'TOK001',
-      '2010-05-15',
-      'Robert Doe',
-      'Indian',
-      '2015-04-01',
-      'Class 10',
-      '2024-03-31',
-      'Completed Course',
-      '2024-03-15',
-      'Good',
-      'Main Campus',
-    ];
+    const sampleRow = EXCEL_HEADERS.map((h) => {
+      if (h === 'Name') return 'John Doe';
+      if (h === 'Student Code') return 'TOK001';
+      if (h === 'Father Name') return 'Robert Doe';
+      if (h === 'Date Of Birth') return '2010-05-15';
+      if (h === 'Admission Date') return '2015-04-01';
+      if (h === 'Enrollment Course') return 'CP08: Computer Technology & IT Infrastructure';
+      if (h === 'Enrollment Center') return 'Main Campus';
+      if (h === 'Date of Leaving') return '2024-03-31';
+      if (h === 'Reason for leaving') return 'Completed Course';
+      if (h === 'Date of Application for Transfer Certificate') return '2024-03-15';
+      if (h === 'Conduct and character') return 'Good';
+      return '';
+    });
 
     const data = [headerRow, sampleRow];
 
