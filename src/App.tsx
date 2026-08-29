@@ -4,6 +4,7 @@ import { BulkUpload } from './components/BulkUpload';
 import { History } from './components/History';
 import { TCPreview } from './components/TCPreview';
 import { BonafideForm } from './components/BonafideForm';
+import { BonafideHistory } from './components/BonafideHistory';
 import { BulkBonafide } from './components/BulkBonafide';
 import { generateTCNumber, type TCData, DEFAULT_SCHOOL_INFO } from './types';
 import { useState, useEffect } from 'react';
@@ -19,14 +20,17 @@ function Sidebar() {
   const [expanded, setExpanded] = useState(false);
   const [tcOpen, setTcOpen] = useState(true);
   const [bfOpen, setBfOpen] = useState(false);
+  const [histOpen, setHistOpen] = useState(false);
 
   const isTCActive = location.pathname === '/' || location.pathname === '/bulk';
   const isBFActive = location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk';
+  const isHistActive = location.pathname === '/history' || location.pathname === '/bonafide-history';
 
   useEffect(() => {
     if (isTCActive) setTcOpen(true);
     if (isBFActive) setBfOpen(true);
-  }, [isTCActive, isBFActive]);
+    if (isHistActive) setHistOpen(true);
+  }, [isTCActive, isBFActive, isHistActive]);
 
   return (
     <aside
@@ -136,22 +140,49 @@ function Sidebar() {
           </div>
         )}
 
-        {/* History */}
-        <Link to="/history">
-          <Button
-            variant={location.pathname === '/history' ? 'secondary' : 'ghost'}
-            className={`w-full justify-start gap-3 text-sm font-normal h-11 px-3 relative ${
-              location.pathname === '/history'
-                ? 'bg-[#f5821f]/10 text-[#f5821f] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#f5821f]'
-                : 'hover:bg-accent/50'
-            }`}
-          >
-            <Clock className={`h-5 w-5 shrink-0 ${location.pathname === '/history' ? 'text-[#f5821f]' : 'text-muted-foreground'}`} />
-            <span className={`truncate transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              History
-            </span>
-          </Button>
-        </Link>
+        {/* History group */}
+        <button
+          onClick={() => setHistOpen(!histOpen)}
+          className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            isHistActive ? 'bg-[#f5821f]/10 text-[#f5821f]' : 'hover:bg-accent/50 text-foreground'
+          }`}
+        >
+          <Clock className={`h-5 w-5 shrink-0 ${isHistActive ? 'text-[#f5821f]' : 'text-muted-foreground'}`} />
+          <span className={`truncate transition-opacity duration-200 flex-1 text-left ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            History
+          </span>
+          {expanded && (
+            histOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />
+          )}
+        </button>
+        {histOpen && expanded && (
+          <div className="ml-4 flex flex-col gap-0.5">
+            <Link to="/history">
+              <Button
+                variant={location.pathname === '/history' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/history'
+                    ? 'bg-[#f5821f]/10 text-[#f5821f] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#f5821f]'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <span className="truncate">TC History</span>
+              </Button>
+            </Link>
+            <Link to="/bonafide-history">
+              <Button
+                variant={location.pathname === '/bonafide-history' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/bonafide-history'
+                    ? 'bg-[#1d8bcb]/10 text-[#1d8bcb] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#1d8bcb]'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <span className="truncate">Bonafide History</span>
+              </Button>
+            </Link>
+          </div>
+        )}
 
         {/* Settings */}
         <Link to="/settings">
@@ -264,6 +295,10 @@ function BulkBonafidePage() {
 
 function HistoryPage() {
   return <History />;
+}
+
+function BonafideHistoryPage() {
+  return <BonafideHistory />;
 }
 
 function SettingsPage() {
@@ -381,7 +416,8 @@ function AppLayout() {
   const getPageTitle = () => {
     if (location.pathname === '/' || location.pathname === '/bulk') return 'Transfer Certificate';
     if (location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk') return 'Bonafide Certificate';
-    if (location.pathname === '/history') return 'History';
+    if (location.pathname === '/history') return 'TC History';
+    if (location.pathname === '/bonafide-history') return 'Bonafide History';
     if (location.pathname === '/settings') return 'Settings';
     return 'Transfer Certificate';
   };
@@ -389,7 +425,8 @@ function AppLayout() {
   const getPageSubtitle = () => {
     if (location.pathname === '/' || location.pathname === '/bulk') return 'Generate and manage transfer certificates';
     if (location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk') return 'Generate and manage bonafide certificates';
-    if (location.pathname === '/history') return 'View all generated certificates';
+    if (location.pathname === '/history') return 'View all generated transfer certificates';
+    if (location.pathname === '/bonafide-history') return 'View all generated bonafide certificates';
     if (location.pathname === '/settings') return 'Application configuration';
     return 'Generate and manage transfer certificates';
   };
@@ -434,6 +471,7 @@ function AppLayout() {
               <Route path="/bonafide" element={<BonafideFormPage />} />
               <Route path="/bonafide-bulk" element={<BulkBonafidePage />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/bonafide-history" element={<BonafideHistoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>

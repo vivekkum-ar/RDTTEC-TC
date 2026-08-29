@@ -319,6 +319,38 @@ class GoogleSheetsService {
       throw new Error(err.error || 'Failed to bulk add bonafides');
     }
   }
+  async deleteBonafide(rowIndex: number): Promise<void> {
+    const response = await fetch(`/api/bonafide/${rowIndex}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete bonafide record');
+    }
+  }
+
+  async updateBonafide(record: BonafideRecord): Promise<void> {
+    const values = [
+      record.bonafideNumber,
+      record.createdAt,
+      record.studentName,
+      record.fatherName,
+      record.tokenNumber,
+      record.gender,
+      record.centreStudied,
+      record.courseAdmitted,
+      record.dateOfAdmission,
+      record.semester?.toString() || '',
+      record.completionDate || '',
+    ];
+    const response = await fetch(`/api/bonafide/${record.rowIndex}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update bonafide record');
+    }
+  }
 }
 
 export const googleSheetsService = new GoogleSheetsService();

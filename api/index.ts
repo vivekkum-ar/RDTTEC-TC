@@ -355,6 +355,59 @@ app.get('/api/bonafide/sheet', async (_req, res) => {
   }
 });
 
+app.put('/api/bonafide/:rowIndex', async (req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.status(500).json({ error: 'Service account not configured' });
+    await ensureBonafideSheetExists();
+    const { rowIndex } = req.params;
+    const values = req.body.values;
+    await sheetsFetch(
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(BONAFIDE_SHEET_NAME)}!A${rowIndex}:K${rowIndex}?valueInputOption=RAW`,
+      { method: 'PUT', body: JSON.stringify({ values }) }
+    );
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('PUT /api/bonafide error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/bonafide/:rowIndex', async (req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.status(500).json({ error: 'Service account not configured' });
+    await ensureBonafideSheetExists();
+    const { rowIndex } = req.params;
+    const spreadsheet = await sheetsFetch(`${BASE}/${SPREADSHEET_ID}`);
+    const sheet = spreadsheet.sheets?.find(
+      (s: any) => s.properties?.title === BONAFIDE_SHEET_NAME
+    );
+    if (!sheet || !sheet.properties?.sheetId) {
+      return res.status(404).json({ error: 'Bonafide sheet not found' });
+    }
+    await sheetsFetch(`${BASE}/${SPREADSHEET_ID}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId: sheet.properties.sheetId,
+              dimension: 'ROWS',
+              startIndex: parseInt(rowIndex) - 1,
+              endIndex: parseInt(rowIndex),
+            },
+          },
+        }],
+      }),
+    });
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('DELETE /api/bonafide error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/api/auth-test', async (_req, res) => {
   const credentials = loadCredentials();
   if (!credentials) {
