@@ -11,6 +11,7 @@ app.use(express.json());
 
 const SPREADSHEET_ID = process.env.VITE_SPREADSHEET_ID || '';
 const SHEET_NAME = process.env.VITE_SHEET_NAME || 'TC Data';
+const BONAFIDE_SHEET_NAME = process.env.VITE_BONAFIDE_SHEET_NAME || 'Bonafide Data';
 const BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 let cachedToken: string | null = null;
@@ -257,6 +258,101 @@ app.get('/api/config', (_req, res) => {
     sheetName: SHEET_NAME,
     configured: !!loadCredentials(),
   });
+});
+
+// --- Bonafide routes ---
+
+async function ensureBonafideSheetExists(): Promise<boolean> {
+  if (!SPREADSHEET_ID) return false;
+  try {
+    const data = await sheetsFetch(`${BASE}/${SPREADSHEET_ID}`);
+    const exists = data.sheets?.some(
+      (s: any) => s.properties?.title === BONAFIDE_SHEET_NAME
+    );
+    if (!exists) {
+      await sheetsFetch(`${BASE}/${SPREADSHEET_ID}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [{ addSheet: { properties: { title: BONAFIDE_SHEET_NAME } } }],
+        }),
+      });
+    }
+    return true;
+  } catch (error: any) {
+    console.error('ensureBonafideSheetExists error:', error.message);
+    return false;
+  }
+}
+
+app.get('/api/bonafide', async (_req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.status(500).json({ error: 'Service account not configured' });
+    if (!(await ensureBonafideSheetExists())) {
+      return res.status(500).json({ error: 'Failed to access spreadsheet' });
+    }
+    const data = await sheetsFetch(
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(BONAFIDE_SHEET_NAME)}!A:K`
+    );
+    res.json({ values: data.values || [] });
+  } catch (error: any) {
+    console.error('GET /api/bonafide error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/bonafide', async (req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.status(500).json({ error: 'Service account not configured' });
+    await ensureBonafideSheetExists();
+    const values = req.body.values;
+    if (!values || !Array.isArray(values)) {
+      return res.status(400).json({ error: 'Invalid payload' });
+    }
+    const data = await sheetsFetch(
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(BONAFIDE_SHEET_NAME)}!A:K:append?valueInputOption=RAW`,
+      { method: 'POST', body: JSON.stringify({ values: [values] }) }
+    );
+    const updatedRange = data.updates?.updatedRange || '';
+    const rowMatch = updatedRange.match(/(\d+)$/);
+    const rowIndex = rowMatch ? parseInt(rowMatch[1]) : 0;
+    res.json({ rowIndex, bonafideNumber: values[0] });
+  } catch (error: any) {
+    console.error('POST /api/bonafide error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/bonafide/bulk', async (req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.status(500).json({ error: 'Service account not configured' });
+    await ensureBonafideSheetExists();
+    const rows = req.body.rows;
+    if (!rows || !Array.isArray(rows)) {
+      return res.status(400).json({ error: 'Invalid payload' });
+    }
+    await sheetsFetch(
+      `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(BONAFIDE_SHEET_NAME)}!A:K:append?valueInputOption=RAW`,
+      { method: 'POST', body: JSON.stringify({ values: rows }) }
+    );
+    res.json({ count: rows.length });
+  } catch (error: any) {
+    console.error('POST /api/bonafide/bulk error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/bonafide/sheet', async (_req, res) => {
+  try {
+    const token = await getToken();
+    if (!token) return res.json({ configured: false });
+    const exists = await ensureBonafideSheetExists();
+    res.json({ configured: exists, sheetName: BONAFIDE_SHEET_NAME });
+  } catch {
+    res.json({ configured: false });
+  }
 });
 
 app.get('/api/auth-test', async (_req, res) => {

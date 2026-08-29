@@ -191,4 +191,85 @@ export function generateTCNumber(centreName: string, tokenNumber: string): strin
   return `${centreName}/TC/${session}/${rollNumber}`;
 }
 
+export function generateBonafideNumber(centreName: string, tokenNumber: string): string {
+  const session = new Date().getFullYear().toString().slice(-2);
+  const rollNumber = tokenNumber.padStart(3, '0');
+  return `${centreName}/BF/${session}/${rollNumber}`;
+}
+
+export interface BonafideData {
+  bonafideNumber?: string;
+  studentName: string;
+  fatherName: string;
+  tokenNumber: string;
+  gender: 'Male' | 'Female';
+  centreStudied: string;
+  courseAdmitted: string;
+  dateOfAdmission: string;
+  semester?: number;
+  completionDate?: string;
+  createdAt?: string;
+}
+
+export interface BonafideRecord extends BonafideData {
+  id: string;
+  rowIndex: number;
+}
+
+export function calculateSemester(dateOfAdmission: string): number {
+  if (!dateOfAdmission) return 1;
+  const admission = new Date(dateOfAdmission);
+  if (isNaN(admission.getTime())) return 1;
+
+  const now = new Date();
+  const admissionYear = admission.getFullYear();
+  const admissionMonth = admission.getMonth();
+
+  let firstSemStart: Date;
+  if (admissionMonth >= 6) {
+    firstSemStart = new Date(admissionYear, 6, 1);
+  } else {
+    firstSemStart = new Date(admissionYear - 1, 6, 1);
+  }
+
+  const elapsedMs = now.getTime() - firstSemStart.getTime();
+  const elapsedDays = Math.max(0, Math.floor(elapsedMs / (1000 * 60 * 60 * 24)));
+  const semester = Math.min(6, Math.floor(elapsedDays / 182) + 1);
+  return Math.max(1, semester);
+}
+
+export function getCompletionDate(dateOfAdmission: string): string {
+  if (!dateOfAdmission) return '';
+  const date = new Date(dateOfAdmission);
+  if (isNaN(date.getTime())) return '';
+  date.setFullYear(date.getFullYear() + 3);
+  return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+}
+
+export function getAdmissionMonthYear(dateOfAdmission: string): string {
+  if (!dateOfAdmission) return '';
+  const date = new Date(dateOfAdmission);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+}
+
+export function getGenderProps(gender: string): {
+  title: string;
+  pronoun: string;
+  possessive: string;
+  object: string;
+  parentPrefix: string;
+} {
+  if (gender === 'Female') {
+    return { title: 'Ms.', pronoun: 'She', possessive: 'her', object: 'her', parentPrefix: 'D/o' };
+  }
+  return { title: 'Mr.', pronoun: 'He', possessive: 'his', object: 'him', parentPrefix: 'S/o' };
+}
+
+export function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 export {};

@@ -3,9 +3,11 @@ import { TCForm } from './components/TCForm';
 import { BulkUpload } from './components/BulkUpload';
 import { History } from './components/History';
 import { TCPreview } from './components/TCPreview';
+import { BonafideForm } from './components/BonafideForm';
+import { BulkBonafide } from './components/BulkBonafide';
 import { generateTCNumber, type TCData, DEFAULT_SCHOOL_INFO } from './types';
 import { useState, useEffect } from 'react';
-import { FileText, Upload, Clock, Settings, Moon, Sun, LogOut, Database, CheckCircle2, XCircle } from 'lucide-react';
+import { FileText, Clock, Settings, Moon, Sun, LogOut, Database, CheckCircle2, XCircle, ChevronDown, ChevronRight, Award } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { AuthGuard } from './components/AuthGuard';
 import { LoginPage } from './pages/LoginPage';
@@ -15,13 +17,16 @@ import { Dialog, DialogContent } from './components/ui/dialog';
 function Sidebar() {
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
+  const [tcOpen, setTcOpen] = useState(true);
+  const [bfOpen, setBfOpen] = useState(false);
 
-  const navItems = [
-    { path: '/', label: 'TC Form', icon: FileText },
-    { path: '/bulk', label: 'Bulk Upload', icon: Upload },
-    { path: '/history', label: 'History', icon: Clock },
-    { path: '/settings', label: 'Settings', icon: Settings },
-  ];
+  const isTCActive = location.pathname === '/' || location.pathname === '/bulk';
+  const isBFActive = location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk';
+
+  useEffect(() => {
+    if (isTCActive) setTcOpen(true);
+    if (isBFActive) setBfOpen(true);
+  }, [isTCActive, isBFActive]);
 
   return (
     <aside
@@ -43,35 +48,132 @@ function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 p-2">
-        {navItems.map((item, index) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          const isOrange = index % 2 === 0;
-          const activeBg = isOrange ? 'bg-[#f5821f]/10 text-[#f5821f] hover:bg-[#f5821f]/15 before:bg-[#f5821f]' : 'bg-[#1d8bcb]/10 text-[#1d8bcb] hover:bg-[#1d8bcb]/15 before:bg-[#1d8bcb]';
-          const activeIcon = isOrange ? 'text-[#f5821f]' : 'text-[#1d8bcb]';
-          return (
-            <Link key={item.path} to={item.path}>
+        {/* Transfer Certificate group */}
+        <button
+          onClick={() => setTcOpen(!tcOpen)}
+          className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            isTCActive ? 'bg-[#f5821f]/10 text-[#f5821f]' : 'hover:bg-accent/50 text-foreground'
+          }`}
+        >
+          <FileText className={`h-5 w-5 shrink-0 ${isTCActive ? 'text-[#f5821f]' : 'text-muted-foreground'}`} />
+          <span className={`truncate transition-opacity duration-200 flex-1 text-left ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            Transfer Certificate
+          </span>
+          {expanded && (
+            tcOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />
+          )}
+        </button>
+        {tcOpen && expanded && (
+          <div className="ml-4 flex flex-col gap-0.5">
+            <Link to="/">
               <Button
-                variant={isActive ? 'secondary' : 'ghost'}
-                className={`w-full justify-start gap-3 text-sm font-normal h-11 px-3 relative ${
-                  isActive
-                    ? `${activeBg} font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full`
+                variant={location.pathname === '/' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/'
+                    ? 'bg-[#f5821f]/10 text-[#f5821f] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#f5821f]'
                     : 'hover:bg-accent/50'
                 }`}
               >
-                <Icon className={`h-5 w-5 shrink-0 ${isActive ? activeIcon : 'text-muted-foreground'}`} />
-                <span className={`truncate transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                  {item.label}
-                </span>
+                <span className="truncate">TC Form</span>
               </Button>
             </Link>
-          );
-        })}
+            <Link to="/bulk">
+              <Button
+                variant={location.pathname === '/bulk' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/bulk'
+                    ? 'bg-[#f5821f]/10 text-[#f5821f] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#f5821f]'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <span className="truncate">Bulk Upload</span>
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {/* Bonafide group */}
+        <button
+          onClick={() => setBfOpen(!bfOpen)}
+          className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            isBFActive ? 'bg-[#1d8bcb]/10 text-[#1d8bcb]' : 'hover:bg-accent/50 text-foreground'
+          }`}
+        >
+          <Award className={`h-5 w-5 shrink-0 ${isBFActive ? 'text-[#1d8bcb]' : 'text-muted-foreground'}`} />
+          <span className={`truncate transition-opacity duration-200 flex-1 text-left ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            Bonafide
+          </span>
+          {expanded && (
+            bfOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />
+          )}
+        </button>
+        {bfOpen && expanded && (
+          <div className="ml-4 flex flex-col gap-0.5">
+            <Link to="/bonafide">
+              <Button
+                variant={location.pathname === '/bonafide' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/bonafide'
+                    ? 'bg-[#1d8bcb]/10 text-[#1d8bcb] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#1d8bcb]'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <span className="truncate">Bonafide Form</span>
+              </Button>
+            </Link>
+            <Link to="/bonafide-bulk">
+              <Button
+                variant={location.pathname === '/bonafide-bulk' ? 'secondary' : 'ghost'}
+                className={`w-full justify-start gap-3 text-sm font-normal h-10 px-3 relative ${
+                  location.pathname === '/bonafide-bulk'
+                    ? 'bg-[#1d8bcb]/10 text-[#1d8bcb] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#1d8bcb]'
+                    : 'hover:bg-accent/50'
+                }`}
+              >
+                <span className="truncate">Bulk Bonafide</span>
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {/* History */}
+        <Link to="/history">
+          <Button
+            variant={location.pathname === '/history' ? 'secondary' : 'ghost'}
+            className={`w-full justify-start gap-3 text-sm font-normal h-11 px-3 relative ${
+              location.pathname === '/history'
+                ? 'bg-[#f5821f]/10 text-[#f5821f] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#f5821f]'
+                : 'hover:bg-accent/50'
+            }`}
+          >
+            <Clock className={`h-5 w-5 shrink-0 ${location.pathname === '/history' ? 'text-[#f5821f]' : 'text-muted-foreground'}`} />
+            <span className={`truncate transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              History
+            </span>
+          </Button>
+        </Link>
+
+        {/* Settings */}
+        <Link to="/settings">
+          <Button
+            variant={location.pathname === '/settings' ? 'secondary' : 'ghost'}
+            className={`w-full justify-start gap-3 text-sm font-normal h-11 px-3 relative ${
+              location.pathname === '/settings'
+                ? 'bg-[#1d8bcb]/10 text-[#1d8bcb] font-medium before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-0.5 before:rounded-full before:bg-[#1d8bcb]'
+                : 'hover:bg-accent/50'
+            }`}
+          >
+            <Settings className={`h-5 w-5 shrink-0 ${location.pathname === '/settings' ? 'text-[#1d8bcb]' : 'text-muted-foreground'}`} />
+            <span className={`truncate transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              Settings
+            </span>
+          </Button>
+        </Link>
       </nav>
 
       <div className={`absolute bottom-0 left-0 right-0 border-t p-3 transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="text-[11px] text-muted-foreground text-center space-y-1">
-          <p>RNTC TC Generator v1.0</p>
+          <p>RNTC TC Generator v2.0</p>
           <p>
             made by{' '}
             <a href="https://github.com/vivekkum-ar/" target="_blank" rel="noopener noreferrer" className="text-[#1d8bcb] hover:underline inline-flex items-center gap-1">
@@ -150,6 +252,14 @@ function TCFormPage() {
 
 function BulkUploadPage() {
   return <BulkUpload />;
+}
+
+function BonafideFormPage() {
+  return <BonafideForm />;
+}
+
+function BulkBonafidePage() {
+  return <BulkBonafide />;
 }
 
 function HistoryPage() {
@@ -258,8 +368,9 @@ function SettingsPage() {
   );
 }
 
-function App() {
+function AppLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   useEffect(() => {
@@ -267,58 +378,77 @@ function App() {
     localStorage.setItem('darkMode', String(darkMode));
   }, [darkMode]);
 
+  const getPageTitle = () => {
+    if (location.pathname === '/' || location.pathname === '/bulk') return 'Transfer Certificate';
+    if (location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk') return 'Bonafide Certificate';
+    if (location.pathname === '/history') return 'History';
+    if (location.pathname === '/settings') return 'Settings';
+    return 'Transfer Certificate';
+  };
+
+  const getPageSubtitle = () => {
+    if (location.pathname === '/' || location.pathname === '/bulk') return 'Generate and manage transfer certificates';
+    if (location.pathname === '/bonafide' || location.pathname === '/bonafide-bulk') return 'Generate and manage bonafide certificates';
+    if (location.pathname === '/history') return 'View all generated certificates';
+    if (location.pathname === '/settings') return 'Application configuration';
+    return 'Generate and manage transfer certificates';
+  };
+
+  return (
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-[#1d8bcb]/15 via-[#f5821f]/10 via-background to-[#1d8bcb]/10 animate-gradient" style={{ backgroundSize: '200% 200%' }}>
+        <Sidebar />
+        <main className="pl-16 transition-all duration-300">
+          <header className="sticky top-0 z-30 border-b bg-gradient-to-r from-[#1d8bcb]/15 via-[#f5821f]/10 via-card to-[#1d8bcb]/10 backdrop-blur-sm">
+            <div className="flex items-center justify-between px-8 py-3">
+              <div className="flex items-center gap-4">
+                <img src="/NTTFLOGO.png" alt="NTTF" className="h-10 w-auto" />
+                <div className="h-8 w-px bg-border" />
+                <div>
+                  <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+                  <p className="text-sm text-muted-foreground">{getPageSubtitle()}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="h-9 w-9"
+                >
+                  {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
+                {user && (
+                  <Button variant="ghost" size="sm" onClick={logout} className="gap-2 text-muted-foreground">
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline text-xs">{user.email}</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </header>
+          <div className="p-8 animate-fade-in">
+            <Routes>
+              <Route path="/" element={<TCFormPage />} />
+              <Route path="/bulk" element={<BulkUploadPage />} />
+              <Route path="/bonafide" element={<BonafideFormPage />} />
+              <Route path="/bonafide-bulk" element={<BulkBonafidePage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+    </AuthGuard>
+  );
+}
+
+function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/*"
-          element={
-            <AuthGuard>
-              <div className="min-h-screen bg-gradient-to-br from-[#1d8bcb]/15 via-[#f5821f]/10 via-background to-[#1d8bcb]/10 animate-gradient" style={{ backgroundSize: '200% 200%' }}>
-                <Sidebar />
-                <main className="pl-16 transition-all duration-300">
-                  <header className="sticky top-0 z-30 border-b bg-gradient-to-r from-[#1d8bcb]/15 via-[#f5821f]/10 via-card to-[#1d8bcb]/10 backdrop-blur-sm">
-                    <div className="flex items-center justify-between px-8 py-3">
-                      <div className="flex items-center gap-4">
-                        <img src="/NTTFLOGO.png" alt="NTTF" className="h-10 w-auto" />
-                        <div className="h-8 w-px bg-border" />
-                        <div>
-                          <h1 className="text-lg font-semibold">Transfer Certificate</h1>
-                          <p className="text-sm text-muted-foreground">Generate and manage transfer certificates</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDarkMode(!darkMode)}
-                          className="h-9 w-9"
-                        >
-                          {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                        </Button>
-                        {user && (
-                          <Button variant="ghost" size="sm" onClick={logout} className="gap-2 text-muted-foreground">
-                            <LogOut className="h-4 w-4" />
-                            <span className="hidden sm:inline text-xs">{user.email}</span>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </header>
-                  <div className="p-8 animate-fade-in">
-                    <Routes>
-                      <Route path="/" element={<TCFormPage />} />
-                      <Route path="/bulk" element={<BulkUploadPage />} />
-                      <Route path="/history" element={<HistoryPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                    </Routes>
-                  </div>
-                </main>
-              </div>
-            </AuthGuard>
-          }
-        />
+        <Route path="/*" element={<AppLayout />} />
       </Routes>
     </BrowserRouter>
   );

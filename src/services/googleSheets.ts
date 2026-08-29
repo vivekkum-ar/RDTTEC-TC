@@ -1,4 +1,4 @@
-import { type TCData, type TCRecord } from '../types';
+import { type TCData, type TCRecord, type BonafideData, type BonafideRecord, generateBonafideNumber } from '../types';
 
 type DuplicateChoice = 'yes' | 'yesToAll' | 'skip' | 'noToAll' | 'cancel';
 
@@ -204,6 +204,119 @@ class GoogleSheetsService {
       return config.configured;
     } catch {
       return false;
+    }
+  }
+
+  // --- Bonafide methods ---
+
+  async getAllBonafides(): Promise<BonafideRecord[]> {
+    const response = await fetch('/api/bonafide');
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to fetch bonafide records');
+    }
+    const data = await response.json();
+    const rows = data.values || [];
+    const hasHeader = rows.length > 0 && rows[0].some((cell: any) => String(cell).trim() === 'Bonafide Number');
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    if (dataRows.length === 0) return [];
+    return dataRows.map((row: any[], index: number) => ({
+      id: row[0] || `bf-${index}`,
+      rowIndex: index + (hasHeader ? 2 : 1),
+      bonafideNumber: row[0] || '',
+      createdAt: row[1] || '',
+      studentName: row[2] || '',
+      fatherName: row[3] || '',
+      tokenNumber: row[4] || '',
+      gender: row[5] || '',
+      centreStudied: row[6] || '',
+      courseAdmitted: row[7] || '',
+      dateOfAdmission: row[8] || '',
+      semester: row[9] ? parseInt(row[9]) : undefined,
+      completionDate: row[10] || '',
+    }));
+  }
+
+  async addBonafide(data: BonafideData, bonafideNumber: string): Promise<number> {
+    const values = [
+      bonafideNumber,
+      new Date().toISOString(),
+      data.studentName,
+      data.fatherName,
+      data.tokenNumber,
+      data.gender,
+      data.centreStudied,
+      data.courseAdmitted,
+      data.dateOfAdmission,
+      data.semester?.toString() || '',
+      data.completionDate || '',
+    ];
+    const response = await fetch('/api/bonafide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to save bonafide record');
+    }
+    const result = await response.json();
+    return result.rowIndex;
+  }
+
+  async isBonafideNumberTaken(bonafideNumber: string): Promise<boolean> {
+    try {
+      const records = await this.getAllBonafides();
+      return records.some(r => r.bonafideNumber === bonafideNumber);
+    } catch {
+      return false;
+    }
+  }
+
+  async addBonafideWithUniqueNumber(
+    data: BonafideData,
+    onDuplicate?: (bonafideNumber: string, studentName: string) => Promise<DuplicateChoice>
+  ): Promise<{ bonafideNumber: string; rowIndex: number }> {
+    let bfNumber = generateBonafideNumber(data.centreStudied, data.tokenNumber);
+
+    if (await this.isBonafideNumberTaken(bfNumber)) {
+      if (!onDuplicate) throw new Error('Duplicate bonafide number');
+      const choice = await onDuplicate(bfNumber, data.studentName);
+      if (choice === 'cancel') throw new Error('Bulk operation cancelled by user');
+      if (choice === 'skip' || choice === 'noToAll') return { bonafideNumber: bfNumber, rowIndex: -1 };
+      let suffix = 2;
+      while (await this.isBonafideNumberTaken(bfNumber)) {
+        bfNumber = `${generateBonafideNumber(data.centreStudied, data.tokenNumber)}-${suffix}`;
+        suffix++;
+      }
+    }
+
+    const rowIndex = await this.addBonafide(data, bfNumber);
+    return { bonafideNumber: bfNumber, rowIndex };
+  }
+
+  async bulkAddBonafides(records: { data: BonafideData; bonafideNumber: string }[]): Promise<void> {
+    const rows = records.map(r => [
+      r.bonafideNumber,
+      new Date().toISOString(),
+      r.data.studentName,
+      r.data.fatherName,
+      r.data.tokenNumber,
+      r.data.gender,
+      r.data.centreStudied,
+      r.data.courseAdmitted,
+      r.data.dateOfAdmission,
+      r.data.semester?.toString() || '',
+      r.data.completionDate || '',
+    ]);
+    const response = await fetch('/api/bonafide/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to bulk add bonafides');
     }
   }
 }
