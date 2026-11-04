@@ -14,7 +14,10 @@ export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): 
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   doc.setFontSize(14);
@@ -65,20 +68,18 @@ export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): 
     yPos += Math.max(10, labelLines.length * 6, lines.length * 6);
   });
 
-  yPos += 14;
+  yPos += 20;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
 
   const signY = yPos;
-  const leftSignX = margin + 30;
-  const rightSignX = pageWidth - margin - 80;
+  const leftSignX = margin;
 
-  doc.line(leftSignX, signY, leftSignX + 80, signY);
-  doc.text('Principal', leftSignX + 20, signY + 6);
+  doc.text('Verified', leftSignX, signY);
 
-  doc.line(rightSignX, signY, rightSignX + 80, signY);
-  doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, rightSignX, signY + 6);
+  doc.line(leftSignX, signY + 10, leftSignX + 80, signY + 10);
+  doc.text('Principal', leftSignX + 20, signY + 16);
 
   return doc;
 }
@@ -101,7 +102,10 @@ export function generateBulkTCPDF(records: TCData[]): jsPDF {
       if (!dateStr) return '';
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
     };
 
     doc.setFontSize(14);
@@ -146,20 +150,18 @@ export function generateBulkTCPDF(records: TCData[]): jsPDF {
       yPos += Math.max(10, labelLines.length * 6, lines.length * 6);
     });
 
-    yPos += 14;
+    yPos += 20;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
 
     const signY = yPos;
-    const leftSignX = margin + 30;
-    const rightSignX = pageWidth - margin - 80;
+    const leftSignX = margin;
 
-    doc.line(leftSignX, signY, leftSignX + 80, signY);
-    doc.text('Principal', leftSignX + 20, signY + 6);
+    doc.text('Verified', leftSignX, signY);
 
-    doc.line(rightSignX, signY, rightSignX + 80, signY);
-    doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, rightSignX, signY + 6);
+    doc.line(leftSignX, signY + 10, leftSignX + 80, signY + 10);
+    doc.text('Principal', leftSignX + 20, signY + 16);
   });
 
   return doc;

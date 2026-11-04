@@ -1,7 +1,6 @@
 import type { TCData } from '../types';
 import { TC_FIELDS, DEFAULT_SCHOOL_INFO } from '../types';
 import { Card, CardContent } from './ui/card';
-import { Separator } from './ui/separator';
 import { Button } from './ui/button';
 import { Eye } from 'lucide-react';
 
@@ -17,7 +16,12 @@ export function TCPreview({ data, tcNumber, onOpenPreview, compact }: TCPreviewP
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
     try {
-      return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
     } catch {
       return dateStr;
     }
@@ -59,18 +63,13 @@ export function TCPreview({ data, tcNumber, onOpenPreview, compact }: TCPreviewP
         })}
       </div>
 
-      <Separator className="my-8" />
-
-      <div className="flex justify-between">
-        <div className="text-center">
-          <div className="mb-1.5 w-44 border-t-2 border-foreground/20" />
-          <span className="text-[11px] text-muted-foreground">Principal / Authorised Signatory</span>
-        </div>
-        <div className="text-center">
-          <div className="mb-1.5 w-44 border-t-2 border-foreground/20" />
-          <span className="text-[11px] text-muted-foreground">
-            Date: {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </span>
+      <div className="mt-8">
+        <p className="text-sm text-muted-foreground mb-6">Verified</p>
+        <div className="flex justify-start">
+          <div className="text-left">
+            <div className="mb-1.5 w-44 border-t-2 border-foreground/20" />
+            <span className="text-[11px] text-muted-foreground">Principal / Authorised Signatory</span>
+          </div>
         </div>
       </div>
     </div>
