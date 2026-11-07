@@ -49,7 +49,7 @@ export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): 
     }
 
     const value = data[field.key as keyof TCData];
-    const displayValue = field.key.includes('Date') ? formatDate(value as string) : (value as string);
+    const displayValue = field.type === 'date' ? formatDate(value as string) : (value as string);
 
     const valueX = margin + labelWidth;
     const maxWidth = pageWidth - valueX - margin;
@@ -128,7 +128,7 @@ export function generateBulkTCPDF(records: TCData[]): jsPDF {
       }
 
       const value = record[field.key as keyof TCData];
-      const displayValue = field.key.includes('Date') ? formatDate(value as string) : (value as string);
+      const displayValue = field.type === 'date' ? formatDate(value as string) : (value as string);
 
       const valueX = margin + labelWidth;
       const maxWidth = pageWidth - valueX - margin;
