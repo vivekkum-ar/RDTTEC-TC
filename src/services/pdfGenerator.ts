@@ -11,9 +11,9 @@ export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): 
   let yPos = LETTERHEAD_TOP;
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr || !dateStr.includes('-')) return dateStr;
+    if (!dateStr) return '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
     const [year, month, day] = dateStr.split('-');
-    if (!year || !month || !day) return dateStr;
     return `${day}-${month}-${year}`;
   };
 
@@ -23,11 +23,11 @@ export function generateTCPDF(data: TCData, options?: { duplicate?: boolean }): 
   yPos += 10;
 
   if (options?.duplicate) {
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('DUPLICATE', margin, yPos);
     doc.text(formatDate(data.dateOfApplication), pageWidth - margin, yPos, { align: 'right' });
-    yPos += 6;
+    yPos += 12;
   }
 
   if (data.tcNumber) {
@@ -98,9 +98,9 @@ export function generateBulkTCPDF(records: TCData[]): jsPDF {
     let yPos = LETTERHEAD_TOP;
 
     const formatDate = (dateStr: string) => {
-      if (!dateStr || !dateStr.includes('-')) return dateStr;
+      if (!dateStr) return '';
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
       const [year, month, day] = dateStr.split('-');
-      if (!year || !month || !day) return dateStr;
       return `${day}-${month}-${year}`;
     };
 
